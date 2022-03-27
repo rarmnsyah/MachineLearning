@@ -1,6 +1,12 @@
+from typing import final
 import numpy as np
-import matplotlib.pyplot as plt 
 import scipy.special as scp
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_iris
+
+path = 'C:/Users/LENOVO/Programming/Python/Machine Learning'
 
 class neuralNetwork:
     def __init__(self, inputNodes, hiddenNodes, outputNodes, learningRate, initWeight = False) -> None:
@@ -11,7 +17,7 @@ class neuralNetwork:
             self.wih = np.random.normal(0.0, pow(self.hNodes, -0.5), (self.hNodes, self.iNodes))
             self.who = np.random.normal(0.0, pow(self.oNodes, -0.5), (self.oNodes, self.hNodes))
         else:
-            dataweight = open('C:/Users/LENOVO/Programming/Python/MachineLearning/model/modelNNReadLetter.txt', 'r')
+            dataweight = open('C:/Users/LENOVO/Programming/Python/MachineLearning/model/modelNNReadIris.txt', 'r')
             weights = dataweight.readlines()
             self.wih = np.reshape(np.asfarray(weights[0].split(',')[0:-1]), (200, 784))
             self.who = np.reshape(np.asfarray(weights[1].split(',')[0:-1]), (10, 200))
@@ -68,7 +74,7 @@ class neuralNetwork:
         return inputs
 
     def updateWeights(self):
-        file1 = open('C:/Users/LENOVO/Programming/Python/Machine Learning/model/modelNNReadLetter.txt', 'w')
+        file1 = open('modelNNReadIris.txt', 'w')
         for i in self.wih:
             file1.write(str(i) + ',')
 
@@ -79,54 +85,55 @@ class neuralNetwork:
         file1.close()
       
 
-input_nodes = 784
-hidden_nodes = 200
-output_nodes = 10
-learning_rate = 0.1
+iris = load_iris()
+sample_data = pd.DataFrame(iris['data'], columns = iris['feature_names'], index = iris['target'])
+
+targetNames = iris['target_names']
+
+target = iris['target']
+X_train, X_test, Y_train,  Y_test = train_test_split(sample_data, target, test_size = 0.3, random_state = 1)
+
+Y_train2 = np.zeros([len(Y_train), 3]) + 0.01
+for j,i in enumerate(Y_train2): i[Y_train[j]] = 0.99
+
+Y_test2 = np.zeros([len(Y_test), 3]) + 0.01
+for j,i in enumerate(Y_test2): i[Y_test[j]] = 0.99
 
 
-n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
-data = open('sample_data/mnist_test.csv', 'r')
-datasets = data.readlines()
-data.close()
-data =[]
-for dataset in datasets:
-    data.append(dataset.split(','))
+inputNodes = 4
+hiddenNodes = 100
+outputNodes = 3
+learningRate = 0.5
 
-def trainModel(data):
-    for i in data:
-        inputs = np.asfarray(i[1:])/255.0 * 0.99 + 0.01
-        targets = np.zeros(10)
-        targets[int(i[0])] = 0.99
+n = neuralNetwork(inputNodes, hiddenNodes, outputNodes, learningRate)
 
-        n.train(inputs, targets)
+X_train = np.array(X_train)
+X_test = np.array(X_test)
 
-    n.updateWeights()
+for i in range(4):
+    X_train[:, i] = ((X_train[:, i] / np.amax(X_train[:,i],axis=0)) * 0.99) + 0.01
+    X_test[:, i] = ((X_test[:, i] / np.amax(X_test[:,i],axis=0)) * 0.99) + 0.01
 
-def checkAccuracyModel(data):
-    outputAcc = 0
-    for i in data:
-        inputs = np.asfarray(i[1:])/255.0 * 0.99 + 0.1
 
-        output = n.query(inputs)
-        if int(i[0]) == np.argmax(output): outputAcc += 1
+for i in range(1000):
+    for i in range(len(X_train)):
+        inputs = X_train[i]
+        targets = Y_train2[i]
 
-    acc = outputAcc / len(data)
-    print(acc)
+        n.train(inputs,targets)
 
-def queryTest():
-    inputss = np.asfarray(data[np.random.randint(0,10000)][1:])/255.0 * 0.99 + 0.1
-    inputs = np.reshape(inputss, (28,28))
-    plt.imshow(inputs, cmap = 'Greys')
-    output = n.query(inputss)
-    print('labels: {}, shape: {}'.format(np.argmax(output), output.shape))
-    plt.show()
+nn = 0
+for i in range(len(X_test)):
+    inputs = X_test[i]
 
-def backQueryTest():
-    target = np.random.randint(0,10)
-    inputs = n.backQuery(target)
-    plt.imshow(np.reshape(inputs, (28,28)), cmap = 'Greys')
-    print('labels: {}'.format(target))
-    plt.show()
+    outputs = n.query(inputs)
 
-queryTest()
+    pred, real = targetNames[np.argmax(outputs)],targetNames[np.argmax(Y_test2[i])]
+
+    nn += 1 if pred == real else 0
+
+    print('labels : {}\treal : {}'.format(pred, real))
+
+print(nn / len(X_test))
+# n.updateWeights()
+
