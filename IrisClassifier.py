@@ -9,20 +9,12 @@ from sklearn.datasets import load_iris
 path = 'C:/Users/LENOVO/Programming/Python/Machine Learning'
 
 class neuralNetwork:
-    def __init__(self, inputNodes, hiddenNodes, outputNodes, learningRate, initWeight = False) -> None:
+    def __init__(self, inputNodes, hiddenNodes, outputNodes, learningRate) -> None:
         self.iNodes = inputNodes
         self.hNodes = hiddenNodes
         self.oNodes = outputNodes
-        if initWeight:
-            self.wih = np.random.normal(0.0, pow(self.hNodes, -0.5), (self.hNodes, self.iNodes))
-            self.who = np.random.normal(0.0, pow(self.oNodes, -0.5), (self.oNodes, self.hNodes))
-        else:
-            dataweight = open('C:/Users/LENOVO/Programming/Python/MachineLearning/model/modelNNReadIris.txt', 'r')
-            weights = dataweight.readlines()
-            self.wih = np.reshape(np.asfarray(weights[0].split(',')[0:-1]), (200, 784))
-            self.who = np.reshape(np.asfarray(weights[1].split(',')[0:-1]), (10, 200))
-            dataweight.close()
-            
+        self.wih = np.random.normal(0.0, pow(self.hNodes, -0.5), (self.hNodes, self.iNodes))
+        self.who = np.random.normal(0.0, pow(self.oNodes, -0.5), (self.oNodes, self.hNodes))
         self.lr = learningRate
         self.actFunc = lambda x: scp.expit(x)
         self.inverse_activation_function = lambda x: scp.logit(x)
@@ -72,17 +64,6 @@ class neuralNetwork:
         inputs += 0.01
 
         return inputs
-
-    def updateWeights(self):
-        file1 = open('modelNNReadIris.txt', 'w')
-        for i in self.wih:
-            file1.write(str(i) + ',')
-
-        file1.write('\n')
-        for i in self.who:
-            file1.write(str(i) + ',')
-
-        file1.close()
       
 
 iris = load_iris()
@@ -103,7 +84,7 @@ for j,i in enumerate(Y_test2): i[Y_test[j]] = 0.99
 inputNodes = 4
 hiddenNodes = 100
 outputNodes = 3
-learningRate = 0.5
+learningRate = 0.8
 
 n = neuralNetwork(inputNodes, hiddenNodes, outputNodes, learningRate)
 
@@ -114,26 +95,32 @@ for i in range(4):
     X_train[:, i] = ((X_train[:, i] / np.amax(X_train[:,i],axis=0)) * 0.99) + 0.01
     X_test[:, i] = ((X_test[:, i] / np.amax(X_test[:,i],axis=0)) * 0.99) + 0.01
 
+accuracyPerEpochs = []
 
-for i in range(1000):
+for i in range(15):
     for i in range(len(X_train)):
         inputs = X_train[i]
         targets = Y_train2[i]
 
         n.train(inputs,targets)
 
-nn = 0
-for i in range(len(X_test)):
-    inputs = X_test[i]
+    nn = 0
+    for i in range(len(X_test)):
+        inputs = X_test[i]
 
-    outputs = n.query(inputs)
+        outputs = n.query(inputs)
 
-    pred, real = targetNames[np.argmax(outputs)],targetNames[np.argmax(Y_test2[i])]
+        pred, real = targetNames[np.argmax(outputs)],targetNames[np.argmax(Y_test2[i])]
 
-    nn += 1 if pred == real else 0
+        nn += 1 if pred == real else 0
 
-    print('labels : {}\treal : {}'.format(pred, real))
+    # print('labels : {}\treal : {}'.format(pred, real))
+    # print(nn / len(X_test))
 
-print(nn / len(X_test))
-# n.updateWeights()
+    accuracyPerEpochs.append(nn / len(X_test))
+    
+print(accuracyPerEpochs[-1])
+plt.plot(accuracyPerEpochs)
+plt.show()
+
 
