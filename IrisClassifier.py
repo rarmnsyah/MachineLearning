@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_iris
-
-path = 'C:/Users/LENOVO/Programming/Python/Machine Learning'
+import os
+path = os.path.dirname(os.path.realpath(__file__))
 
 class neuralNetwork:
     def __init__(self, inputNodes, hiddenNodes, outputNodes, learningRate) -> None:

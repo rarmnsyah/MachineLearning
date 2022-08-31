@@ -1,4 +1,5 @@
-randlist = [2,3,12,4]
+from datetime import date 
 
-print(randlist.pop(-1))
-print(randlist)
+today = date.today()
+print(today, type(today))
+print(str(today))
