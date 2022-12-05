@@ -1,5 +1,3 @@
-from datetime import date 
+import scipy.special as scp
 
-today = date.today()
-print(today, type(today))
-print(str(today))
+print(scp.expit((1*0.3 + 1*0.5 + 0.8)*1.4 + (.7 + .6 + .1) + .3), (1*0.3 + 1*0.5 + 0.8)*1.4 + (.7 + .6 + .1) + .3)
